@@ -1,0 +1,19 @@
+<?php
+$dirPath = __DIR__;
+include($dirPath."/include/connection.php");
+include($dirPath."/include/main.php");					
+
+$jobId = $_GET['job_id'];
+$result = $user->deleteJob($jobId);
+echo "<pre>"; print_r($result); die;
+if($result){
+	$msg = "Job has been Deleted sucessfully!";
+		$_SESSION['msg'] = $msg; 
+		$_SESSION['status'] = 'success';
+	}else{
+		$msg = "Job has been not Deleted sucessfully!";
+		$_SESSION['msg'] = $msg; 
+		$_SESSION['status'] = 'error';
+	}
+	header("location:my_jobs.php");
+?>

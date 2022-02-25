@@ -1,0 +1,73 @@
+<?php
+require ("include/connection.php");
+require ("include/main.php");	
+require ("include/header.php");
+
+if(!isset($_SESSION['userDetail']['id'])){
+	header("Location:index.php");
+}
+$_SESSION['jobId']=$_GET['job_id'];
+$jobDetail = $user->getjobDetail();
+?>
+
+<link href="css/form-elements.css" rel="stylesheet">
+<div class="page-title">Job Detail</div>
+	<div class="container job-listing">
+		<div class="thumbnail" style="height:auto;overflow:hidden;">
+			<div class="col-sm-2">
+				<div style="border:1px solid #ccc;margin-top: 20px;">
+					<?php echo "<img src='gallery/employerLogo/".$_SESSION['userDetail']['company_logo']."'>" ?>
+				</div>
+			</div>
+			<div class="col-sm-10">			
+				<div class="caption-full">
+					<h4 class="pull-right"><?php echo $jobDetail['salary'];?></h4>
+					<h4>
+						<a href=""><?php echo $jobDetail['job_title']; ?></a>
+						<label style="font-size:12px;display:block;color: #999;margin-top: 5px;"><strong>Posted On:</strong> <?php echo $jobDetail['date']; echo " by "; echo $_SESSION['userDetail']['first_name']." ".$_SESSION['userDetail']['last_name']; ?></label>
+					</h4>
+					<p><?php echo $jobDetail['description']; ?></p>
+					<br>
+					<div class="other-desc">Other Information</div>
+					<div class="other-desc-full">
+						<div class="row">
+							<div class="col-sm-9">
+								<table class="table table-bordered">
+									<tr>
+										<td width="50%;"><strong>Age:</strong> <?php echo $jobDetail['age']; ?> </td>
+										<td width="50%;"><strong>Experience:</strong> <?php echo $jobDetail['experience']; ?></td>
+									</tr>
+									<tr>
+										<td width="50%;"><strong>Skills:</strong> <?php echo $jobDetail['skills']; ?></td>
+										<td width="50%;"><strong>Location:</strong> <?php echo $jobDetail['location']; ?> </td>
+									</tr>
+									<tr>
+										<td width="50%;"><strong>Salary:</strong> <?php echo $jobDetail['salary']; ?></td>
+										<td width="50%;"><strong>Designation:</strong> <?php echo $jobDetail['designation']; ?></td>
+									</tr>
+								</table>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="form-top-left">
+			<h3>Applicants</h3><br>
+		</div>
+		<div class="job-listing">
+			<div class="row">
+				<div class="col-sm-4">
+					<div class="thumbnail">
+						<div class="caption">
+							<p style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><b>Name:</b>
+								Naushava javed</p>
+								<b>Applied On:</b>2017-03-24</p>
+								<b>CV:</b><a href="Gallery/Applied_CV/2276266645.docx">2276266645.docx</a>
+								</p>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>

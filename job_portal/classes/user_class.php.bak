@@ -1,0 +1,199 @@
+<?php
+class user_class{
+	public function registeration($first_name,$last_name,$contact,$email,$password,$gender,$user_type){
+		global $con;	
+		$sql = ("INSERT INTO user(first_name,last_name,contact,email,password,gender,user_type) VALUES
+					('".$first_name."','".$last_name."','".$contact."','".$email."',md5('".$password."'),'".$gender."','".$user_type."')");	
+		$query = mysqli_query($con,$sql);
+		$last_id = mysqli_insert_id($con);	
+		return $last_id;
+	}
+
+	public function login($email,$password){
+		global $con;
+		$sql = "SELECT * FROM user WHERE email='".$email."' AND password ='".$password."'";
+		$query = mysqli_query($con,$sql);
+		$result = mysqli_fetch_assoc($query);
+		return 	$result;
+	}
+
+	public function getUserDetails(){
+		global $con;
+		$UserId = $_SESSION['userDetail']['id'];
+		$sql = "SELECT * FROM user WHERE id= '".$UserId."'";
+		$query = mysqli_query($con,$sql);
+		$row = mysqli_fetch_assoc($query);
+		return $row;	
+	}
+
+	public function updateEmployerProfile($first_name,$last_name,$contact,$Company_name,$companyLogo_name,$companyLogo_tempName,$address,$website,$description){
+		global $con;
+		$UserId = $_SESSION['userDetail']['id'];
+		$newCompanyLogo_name = uniqid().'.'.$companyLogo_name;
+		$moveToFolder = "gallery/employerLogo/".$newCompanyLogo_name;
+		$_SESSION['userDetail']['company_logo']= $newCompanyLogo_name;
+		if(!empty($companyLogo_name)){
+			$row = $this->getUserDetails();
+			$path = ($_SERVER['DOCUMENT_ROOT'].'/job_portal/gallery/employerLogo/');
+			if(!empty(unlink($path.$row['company_logo'])) || empty(unlink($path.$row['company_logo'])) ){
+				move_uploaded_file($companyLogo_tempName,$moveToFolder);
+				$sql = "UPDATE user SET first_name='".$first_name."', last_name='".$last_name."', contact='".$contact."',company_name='".$Company_name."',
+						company_logo='".$newCompanyLogo_name."', address='".$address."', website='".$website."', description='".$description."' WHERE id='".$UserId."'";
+			}
+		}else{
+			$sql = "UPDATE user SET first_name='".$first_name."', last_name='".$last_name."', contact='".$contact."',company_name='".$Company_name."',
+					address='".$address."', website='".$website."', description='".$description."' WHERE id='".$UserId."'";
+		}
+		$query = mysqli_query($con,$sql);
+		return $query;
+	}
+
+	public function updateSeekerProfile($first_name,$last_name,$contact,$document_name,$document_tmpName,$address){
+		global $con;
+		$UserId = $_SESSION['userDetail']['id'];
+		$file_extension1= explode('.',$document_name);
+		$file_extension2 = strtolower(end($file_extension1));
+		$newdocument_name = uniqid().'.'.$file_extension2;
+		$moveToFolder = "gallery/seekerDocument/".$newdocument_name;
+		if(!empty($document_name)){
+			if($file_extension2 != "doc" && $file_extension2 != "docx" && $file_extension2 != "pdf"){
+				$msg = "Please choice Doc,Docx and PDF file only!";
+				$_SESSION['msg'] = $msg; 
+				$_SESSION['status'] = 'error';
+				header("location:seeker_profile.php");
+				exit();
+			}else{
+				$row = $this->getUserDetails();
+				$path = ($_SERVER['DOCUMENT_ROOT'].'/job_portal/gallery/seekerDocument/');
+				if(!empty(unlink($path.$row['upload_document'])) || empty(unlink($path.$row['upload_document']))){
+					 move_uploaded_file($document_tmpName,$moveToFolder);
+					$sql = ("UPDATE user SET first_name='".$first_name."', last_name='".$last_name."', contact='".$contact."', upload_document='".$newdocument_name."',
+							 address='".$address."' WHERE id='".$UserId."' ");
+				}
+			}
+		}else{
+			$sql = ("UPDATE user SET first_name='".$first_name."', last_name='".$last_name."', contact='".$contact."', address='".$address."' WHERE id='".$UserId."' ");
+		}
+		$query = mysqli_query($con,$sql);
+		return $query;
+	}
+
+	public function updateProfileImage($userprofleImage,$temp_name){
+		global $con;
+		$UserId = $_SESSION['userDetail']['id'];
+		echo "<img src='gallery/userProfile/".$userprofleImage."' />";
+		$newImage_name = uniqid().'.'.$userprofleImage;
+		$moveToFolder = "gallery/userProfile/".$newImage_name;
+		$_SESSION['userDetail']['profile_image'] =$newImage_name;
+		if(!empty($userprofleImage)){
+			 move_uploaded_file($temp_name,$moveToFolder);
+			 $row = $this->getUserDetails();
+			 $path=($_SERVER['DOCUMENT_ROOT'].'/job_portal/gallery/userProfile/');
+			 if(!empty(unlink($path.$row['profile_image'])) ||empty(unlink($path.$row['profile_image']))){
+				$sql = "UPDATE user SET profile_image='".$newImage_name."' WHERE id= '".$UserId."'";
+			 }
+			$query = mysqli_query($con,$sql);
+			return $query;
+		}
+	}
+
+	public function createJob($job_title, $description, $salary, $age, $experience, $skill, $location, $designation, $document_name, $document_tmpName){
+		global $con;
+		$UserId = $_SESSION['userDetail']['id'];
+		$file_extension1= explode('.',$document_name);
+		$file_extension2 = strtolower(end($file_extension1));
+		$new_documentName = uniqid().'.'.$document_name;
+		$moveFolder = "gallery/employerDocument/".$new_documentName;
+		$date = date('m/d/Y ', time());
+		if($file_extension2 != "doc" && $file_extension2 != "docx" && $file_extension2 != "pdf"){
+				$msg = "Please choice Doc,Docx and PDF file only!";
+				$_SESSION['msg'] = $msg; 
+				$_SESSION['status'] = 'error';
+				header("location:create_job.php");
+				exit();
+		}else{
+				$sql =("INSERT INTO job_management(user_id,job_title,description,salary,age,experience,skills,location,designation,document,date)VALUES 
+				('".$UserId."','".$job_title."','".$description."','".$salary."','".$age."','".$experience."','".$skill."','".$location."','".$designation."',
+				'".$new_documentName."','".$date."')");
+		
+		}
+		$query = mysqli_query($con,$sql);
+		return $query;
+	}
+	
+	public function getjobDetails(){
+		global $con;
+		$UserId = $_SESSION['userDetail']['id'];
+		$sql = "SELECT * FROM job_management WHERE user_id= '".$UserId."' ";
+		$query = mysqli_query($con,$sql);
+		$row = mysqli_fetch_all($query,MYSQLI_ASSOC);
+		return $row;	 
+	}
+	
+	public function getjobDetail($jobId){
+		global $con;
+		$sql = "SELECT * FROM job_management WHERE job_id= '".$jobId."' ";
+		$query = mysqli_query($con,$sql);
+		$row = mysqli_fetch_assoc($query);
+		return $row;	 	
+	}
+	
+	public function jobEdit($job_title, $description, $salary, $age, $experience, $skill, $location, $designation, $document_name, $document_tmpName,$jobId){
+		global $con;
+		$file_extension1= explode('.',$document_name);
+		$file_extension2 = strtolower(end($file_extension1));
+		$new_documentName = uniqid().'.'.$document_name;
+		$moveFolder = "gallery/employerDocument/".$new_documentName;
+		if(!empty($document_name)){
+			if($file_extension2 != "doc" && $file_extension2 != "docx" && $file_extension2 != "pdf"){
+					$msg = "Please choice Doc,Docx and PDF file only!";
+					$_SESSION['msg'] = $msg; 
+					$_SESSION['status'] = 'error';
+					header("location:create_job.php");
+					exit();
+			}else{
+				$sql = ("UPDATE job_management SET job_title='".$job_title."',description='".$description."',salary='".$salary."',age='".$age."',experience='".$experience."'
+						  , skills='".$skill."',location='".$location."',designation='".$designation."', document='".$new_documentName."' WHERE job_id= '".$jobId."' ");
+				}
+		}else{
+			$sql = ("UPDATE job_management SET job_title='".$job_title."', description='".$description."', salary='".$salary."', age='".$age."',
+						experience='".$experience."', skills='".$skill."',location='".$location."', designation='".$designation."' WHERE job_id= '".$jobId."'");
+		}
+		$query = mysqli_query($con,$sql);
+		return $query;
+	}	
+	
+	public function change_password($current_psw, $new_password){
+		global $con;
+		$UserId = $_SESSION['userDetail']['id'];
+		$pass = $_SESSION['userDetail']['password'];
+		if($current_psw == $pass){
+			$sql = ("UPDATE user SET password='".$new_password."' WHERE id= '".$UserId."' ");
+		}else{
+			$msg = "please enter current password!";
+				$_SESSION['msg'] = $msg; 
+				$_SESSION['status'] = 'error';
+				header("location:change_password.php");
+				exit();
+		}
+		$query = mysqli_query($con,$sql);
+		return $query;
+	}
+
+	public function deleteJob($jobId){
+		global $con;
+		$sql = "DELETE FROM job_management WHERE job_id = '".$jobId."'";
+		$query = mysqli_query($con,$sql);
+		return $query;
+	}
+
+	public function seeker_getjobDetail(){
+		global $con;
+		$UserId = $_SESSION['userDetail']['id'];
+		$sql = "SELECT * FROM user WHERE id= '".$UserId."' ";
+		$query = mysqli_query($con,$sql);
+		$row = mysqli_fetch_all($query,MYSQLI_ASSOC);
+		return $row;	 
+	}
+
+}
